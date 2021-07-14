@@ -1,0 +1,97 @@
+service: appsync-dynamdb
+frameworkVersion: '2'
+
+plugins:
+  - serverless-webpack
+  - serverless-appsync-plugin    
+  - serverless-appsync-simulator
+  - serverless-dynamodb-local
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: 20201221
+
+functions:
+  getTodos:
+    handler: src/functions/todo/getTodos.handler
+  createTodo:
+    handler: src/functions/todo/createTodo.handler
+  updateTodo:
+    handler: src/functions/todo/updateTodo.handler
+  deleteTodo:
+    handler: src/functions/todo/deleteTodo.handler
+
+resources:
+  Resources:
+    todoTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: todo
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE         
+        BillingMode: PAY_PER_REQUEST
+
+custom:
+  webpack:
+    webpackConfig: 'webpack.config.js'
+    includeModules: false # Node modules configuration for packaging    
+  appSync:
+    name: appsync-dynamdb
+    authenticationType: AWS_IAM    
+    mappingTemplates:
+      - dataSource: getTodos
+        type: Query
+        field: getTodos
+      - dataSource: createTodo
+        type: Mutation
+        field: createTodo        
+      - dataSource: updateTodo
+        type: Mutation
+        field: updateTodo                
+      - dataSource: deleteTodo
+        type: Mutation
+        field: deleteTodo             
+    dataSources:
+      - type: AWS_LAMBDA
+        name: getTodos
+        config:
+          functionName: getTodos
+      - type: AWS_LAMBDA
+        name: createTodo
+        config:
+          functionName: createTodo          
+      - type: AWS_LAMBDA
+        name: updateTodo
+        config:
+          functionName: updateTodo
+      - type: AWS_LAMBDA
+        name: deleteTodo
+        config:
+          functionName: deleteTodo          
+    defaultMappingTemplates:
+      request: false
+      response: false    
+  dynamodb:
+  # If you only want to use DynamoDB Local in some stages, declare them here
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+      migrate: true
+      seed: true
+      convertEmptyValues: true
+    # Uncomment only if you already have a DynamoDB running locally
+    # noStart: true
