@@ -1,4 +1,4 @@
-service: appsync-dynamdb
+service: todo
 frameworkVersion: '2'
 
 plugins:
@@ -12,6 +12,20 @@ provider:
   name: aws
   runtime: nodejs14.x
   lambdaHashingVersion: 20201221
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    USER_POOL: ${self:service}-${opt:stage, self:provider.stage}
+    USER_POOL_CLIENT: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"  
 
 functions:
   getTodos:
@@ -25,10 +39,10 @@ functions:
 
 resources:
   Resources:
-    todoTable:
+    TodoTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: todo
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
@@ -40,14 +54,43 @@ resources:
           - AttributeName: SK
             KeyType: RANGE         
         BillingMode: PAY_PER_REQUEST
+    CognitoUserPoolClient:
+      Type: "AWS::Cognito::UserPoolClient"
+      Properties:
+        ClientName: ${self:provider.environment.USER_POOL_CLIENT}
+        GenerateSecret: False
+        UserPoolId:
+          Ref: CognitoUserPool     
+        ExplicitAuthFlows:
+          - ALLOW_CUSTOM_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH          
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool              
+      Properties:
+        UserPoolName: ${self:provider.environment.USER_POOL}
+        UsernameAttributes:
+          - email        
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+            RequireLowercase: False
+            RequireNumbers: False
+            RequireSymbols: False
+            RequireUppercase: False        
 
 custom:
   webpack:
     webpackConfig: 'webpack.config.js'
-    includeModules: false # Node modules configuration for packaging    
+    includeModules: true 
   appSync:
     name: appsync-dynamdb
-    authenticationType: AWS_IAM    
+    authenticationType: AMAZON_COGNITO_USER_POOLS
+    userPoolConfig:
+      awsRegion: { Ref: AWS::Region }
+      defaultAction: ALLOW
+      userPoolId: { Ref: CognitoUserPool }    
     mappingTemplates:
       - dataSource: getTodos
         type: Query
@@ -93,5 +136,3 @@ custom:
       migrate: true
       seed: true
       convertEmptyValues: true
-    # Uncomment only if you already have a DynamoDB running locally
-    # noStart: true

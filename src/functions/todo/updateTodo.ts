@@ -1,20 +1,17 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { AppSyncResolverEvent } from "aws-lambda";
 import { Todo } from "../../model/Todo";
+import { createDynamoDbClient } from "../../util/createDynamoDbClient";
 
 export const handler = async (event: AppSyncResolverEvent<Todo>): Promise<Todo> => {
   const todo = event.arguments;
 
-  const client = new DynamoDBClient({
-    region: 'localhost',
-    endpoint: 'http://localhost:8000',
-  });
+  const client = createDynamoDbClient();
   const ddbDocClient = DynamoDBDocumentClient.from(client); 
 
   await ddbDocClient.send(
     new PutCommand({
-      TableName : "todo",
+      TableName : process.env.DYNAMODB_TABLE,
       Item: {
         PK: `TODO#${todo.id}`,
         SK: `TODO#${todo.id}`,

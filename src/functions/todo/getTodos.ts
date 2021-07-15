@@ -1,24 +1,21 @@
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { ScanCommand } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { APIGatewayProxyEvent, AppSyncResolverEvent } from "aws-lambda";
-import { uuid } from "short-uuid";
+import { AppSyncResolverEvent } from "aws-lambda";
 import { Todo } from "../../model/Todo";
+import { createDynamoDbClient } from "../../util/createDynamoDbClient";
 
 export const handler = async (event : AppSyncResolverEvent<{ userKey: string }>) : Promise<Todo[]> => {
   const userKey = event.arguments.userKey
 
   console.log("userKey: ", userKey);
 
-  const client = new DynamoDBClient({
-    region: 'localhost',
-    endpoint: 'http://localhost:8000',
-  });
+  const client = createDynamoDbClient();
   const ddbDocClient = DynamoDBDocumentClient.from(client); 
 
   const data = await ddbDocClient.send(
     new ScanCommand(
       {
-        TableName : "todo",
+        TableName : process.env.DYNAMODB_TABLE,
       }
     )
   );
