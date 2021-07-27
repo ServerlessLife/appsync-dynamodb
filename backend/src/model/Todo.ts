@@ -1,6 +1,6 @@
 export class Todo {
   id: string;
-  userKey: string;
+  user: string;
   name: string;
   order: number;
 }

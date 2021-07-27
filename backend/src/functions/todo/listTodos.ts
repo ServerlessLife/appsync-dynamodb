@@ -5,9 +5,7 @@ import { Todo } from "../../model/Todo";
 import { createDynamoDbClient } from "../../util/createDynamoDbClient";
 
 export const handler = async (event : AppSyncResolverEvent<{ userKey: string }>) : Promise<Todo[]> => {
-  const userKey = event.arguments.userKey
-
-  console.log("userKey: ", userKey);
+  console.log(JSON.stringify(event, null, 2));
 
   const client = createDynamoDbClient();
   const ddbDocClient = DynamoDBDocumentClient.from(client); 
@@ -21,10 +19,9 @@ export const handler = async (event : AppSyncResolverEvent<{ userKey: string }>)
   );
 
   const list =  data.Items.map(i => (<Todo>{
-    id: i.id.S,
-    name: i.name.S,
-    userKey: i.userKey.S,
-    order: i.order.N as any
+    id: i.id?.S,
+    name: i.name?.S,
+    order: i.order?.N as any
   }));
 
   return list;
