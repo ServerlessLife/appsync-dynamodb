@@ -7,6 +7,7 @@ export const createTodo = /* GraphQL */ `
     createTodo(name: $name) {
       id
       name
+      user
     }
   }
 `;
@@ -15,6 +16,7 @@ export const updateTodo = /* GraphQL */ `
     updateTodo(id: $id, name: $name) {
       id
       name
+      user
     }
   }
 `;

@@ -1,4 +1,4 @@
-# Serverless - AWS Node.js Typescript
+# Sample application to integrate AWS AppSync with DynamoDB via Lambda without VTL
 
 This project has been generated using the `aws-nodejs-typescript` template from the [Serverless framework](https://www.serverless.com/).
 

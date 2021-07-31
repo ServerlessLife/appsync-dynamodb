@@ -1,0 +1,55 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - develop
+      - staging      
+      - main      
+
+env: 
+  # mapping variables between branch name and stage/environment name
+  refs/heads/develop: dev
+  refs/heads/staging: staging
+  refs/heads/main: prod
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}        
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache node_modules frontend
+      # node_modules caching is based on package-lock.json    
+      uses: actions/cache@v2
+      with:
+        path: |
+          ./frontend/node_modules
+        key:
+          npm-todo-${{ hashFiles('frontend/package-lock.json') }}          
+    - name: Cache node_modules backend
+      uses: actions/cache@v2
+      with:
+        path: |
+          ./backend/node_modules
+        key:
+          npm-todo-${{ hashFiles('backend/package-lock.json') }}
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x'
+    # Create an empty build folder to trick the Lift plugin into deploying infrastructure before building the frontend.
+    # We need to deploy infrastructure before because we need to export aws-exports.js and schema.json from it. 
+    # They are required for frontend build.
+    - run: mkdir frontend/build 
+    - run: cd backend && npm ci
+    - run: cd backend && npx serverless deploy --stage ${{ env[github.ref] }}
+    - run: cd frontend && npm ci
+    # Now build frontend
+    - run: cd frontend && npm run build    
+    # ... adn deploy frontend
+    - run: cd backend && npx serverless landing:upload --stage ${{ env[github.ref] }}
+

@@ -2,11 +2,9 @@ service: todo
 frameworkVersion: '2'
 
 plugins:
+  - serverless-iam-roles-per-function
   - serverless-webpack
   - serverless-appsync-plugin
-  - serverless-appsync-simulator
-  - serverless-dynamodb-local
-  - serverless-offline
   - aws-amplify-serverless-plugin
   - serverless-lift
 
@@ -19,26 +17,37 @@ provider:
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
     USER_POOL: ${self:service}-${opt:stage, self:provider.stage}
     USER_POOL_CLIENT: ${self:service}-${opt:stage, self:provider.stage}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"  
 
 functions:
   listTodos:
     handler: src/functions/todo/listTodos.handler
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:Scan
+        Resource: "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE}"  
   createTodo:
     handler: src/functions/todo/createTodo.handler
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE}"      
   updateTodo:
     handler: src/functions/todo/updateTodo.handler
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE}"      
   deleteTodo:
     handler: src/functions/todo/deleteTodo.handler
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE}"  
 
 resources:
   Resources:
@@ -60,12 +69,6 @@ resources:
     CognitoUserPool:
       Type: AWS::Cognito::UserPool              
       Properties:
-        # AccountRecoverySetting:
-        #   RecoveryMechanisms:
-        #     - Name: verified_phone_number
-        #       Priority: 1
-        #     - Name: verified_email
-        #       Priority: 2
         AdminCreateUserConfig:
           AllowAdminCreateUserOnly: false
         AliasAttributes:
@@ -104,27 +107,13 @@ resources:
           - openid
           - aws.cognito.signin.user.admin    
         CallbackURLs:
-          - https://example.com          
-        # ExplicitAuthFlows:
-        #   - ALLOW_CUSTOM_AUTH
-        #   - ALLOW_USER_PASSWORD_AUTH
-        #   - ALLOW_USER_SRP_AUTH
-        #   - ALLOW_REFRESH_TOKEN_AUTH          
-        
-  Outputs:
-    UserPoolId:
-      Value:
-        Ref: CognitoUserPool
-      Export:
-        Name: ${self:service}-${opt:stage, self:provider.stage}-UserPoolId        
-    UserPoolClientId:
-      Value:
-        Ref: CognitoUserPoolClient
-      Export:
-        Name: ${self:service}-${opt:stage, self:provider.stage}-UserPoolClientId        
+          - https://example.com           
      
-
 custom:
+  subdomains:
+    dev: todo-dev
+    staging: todo-staging
+    prod: todo
   webpack:
     webpackConfig: 'webpack.config.js'
     includeModules: true 
@@ -168,18 +157,6 @@ custom:
     defaultMappingTemplates:
       request: false
       response: false    
-  dynamodb:
-  # If you only want to use DynamoDB Local in some stages, declare them here
-    stages:
-      - dev
-    start:
-      port: 8000
-      inMemory: true
-      heapInitial: 200m
-      heapMax: 1g
-      migrate: true
-      seed: true
-      convertEmptyValues: true
   amplify:
     - filename: ../frontend/schema.json
       type: schema.json
@@ -187,3 +164,10 @@ custom:
       type: javascript
       appClient: CognitoUserPoolClient
       s3bucket: disabled    
+
+constructs:
+  landing:
+    type: static-website
+    path: ../frontend/build
+    domain: ${self:custom.subdomains.${opt:stage, self:provider.stage}}.markotest.com
+    certificate: arn:aws:acm:${aws:region}:${aws:accountId}:certificate/4714d929-6b2d-4e7f-b276-f64bb5a2fdd8
