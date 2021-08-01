@@ -64,7 +64,6 @@ const App = () => {
 
       const newTodos = [...todos];
       const index = newTodos.findIndex((t) => t?.id === todo.id);
-      console.log("index", index)
       newTodos[index] = saved.data?.updateTodo!;
       setTodos(newTodos);
     } catch (err) {

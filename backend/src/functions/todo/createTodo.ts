@@ -7,7 +7,7 @@ import { createDynamoDbClient } from "../../util/createDynamoDbClient";
 export const handler = async (event: AppSyncResolverEvent<Todo>): Promise<Todo> => {
   const todo: Todo = event.arguments;
 
-  //Use KSUID for which is similar to UUID, but it is sortable becouse the first part contains a timestamp
+  //Use KSUID for which is similar to UUID, but it is sortable because the first part contains a timestamp
   todo.id = mksuid(); 
   todo.user = (event.identity as AppSyncIdentityCognito).sub;
 

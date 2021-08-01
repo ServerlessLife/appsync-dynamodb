@@ -11,7 +11,7 @@ export const AddTodo: React.FC<AddTodoProps> = ({ onItemAdd }) => {
   return (
     <Paper style={{ margin: 16, padding: 16 }}>
       <Grid container>
-        <Grid xs={10} md={11} item style={{ paddingRight: 16 }}>
+        <Grid xs={10} md={11} item >
           <TextField
             placeholder="Add Todo here"
             value={name}
