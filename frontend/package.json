@@ -1,5 +1,6 @@
 {
   "name": "todo",
+  "description": "Frontend part of to-do application with AWS AppSync, DynamoDB, and Lambda",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

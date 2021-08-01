@@ -1,7 +1,7 @@
 {
   "name": "appsync-dynamodb-sample",
   "version": "1.0.0",
-  "description": "Sample application to integrate AWS AppSync with DynamoDB via Lambda without VTL",
+  "description": "Backend part of to-do application with AWS AppSync, DynamoDB, and Lambda",
   "main": "serverless.ts",
   "scripts": {
     "deploy": "serverless deploy"
