@@ -6,7 +6,6 @@ export type Todo = {
   __typename: "Todo",
   id?: string | null,
   name?: string | null,
-  user?: string | null,
 };
 
 export type CreateTodoMutationVariables = {
@@ -18,7 +17,6 @@ export type CreateTodoMutation = {
     __typename: "Todo",
     id?: string | null,
     name?: string | null,
-    user?: string | null,
   },
 };
 
@@ -32,7 +30,6 @@ export type UpdateTodoMutation = {
     __typename: "Todo",
     id?: string | null,
     name?: string | null,
-    user?: string | null,
   },
 };
 
@@ -49,6 +46,5 @@ export type ListTodosQuery = {
     __typename: "Todo",
     id?: string | null,
     name?: string | null,
-    user?: string | null,
   } | null >,
 };

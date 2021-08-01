@@ -1,5 +1,5 @@
 import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { AppSyncResolverEvent } from "aws-lambda";
+import { AppSyncIdentityCognito, AppSyncResolverEvent } from "aws-lambda";
 import { Todo } from "../../model/Todo";
 import { createDynamoDbClient } from "../../util/createDynamoDbClient";
 
@@ -8,12 +8,13 @@ export const handler = async (event: AppSyncResolverEvent<Todo>): Promise<Todo> 
 
   const client = createDynamoDbClient();
   const ddbDocClient = DynamoDBDocumentClient.from(client);
+  const user = (event.identity as AppSyncIdentityCognito).sub;
 
   await ddbDocClient.send(
     new UpdateCommand({
       TableName: process.env.DYNAMODB_TABLE,
       Key: {
-        PK: `TODO#${todo.id}`,
+        PK: `USER#${user}`,
         SK: `TODO#${todo.id}`,
       },
       ExpressionAttributeNames: {

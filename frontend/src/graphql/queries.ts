@@ -7,7 +7,6 @@ export const listTodos = /* GraphQL */ `
     listTodos {
       id
       name
-      user
     }
   }
 `;

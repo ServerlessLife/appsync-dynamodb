@@ -13,7 +13,7 @@
     "@aws-sdk/client-dynamodb": "^3.21.0",
     "@aws-sdk/lib-dynamodb": "^3.21.0",
     "@aws-sdk/util-dynamodb": "^3.21.0",
-    "short-uuid": "^4.2.0",
+    "mksuid": "^0.2.0",
     "source-map-support": "^0.5.19"
   },
   "devDependencies": {

@@ -25,7 +25,6 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:Query
-          - dynamodb:Scan
         Resource: "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:provider.environment.DYNAMODB_TABLE}"  
   createTodo:
     handler: src/functions/todo/createTodo.handler

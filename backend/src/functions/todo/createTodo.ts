@@ -1,15 +1,14 @@
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { AppSyncIdentityCognito, AppSyncResolverEvent } from "aws-lambda";
-import { uuid } from "short-uuid";
 import { Todo } from "../../model/Todo";
+import mksuid from "mksuid";
 import { createDynamoDbClient } from "../../util/createDynamoDbClient";
 
 export const handler = async (event: AppSyncResolverEvent<Todo>): Promise<Todo> => {
-  console.log(JSON.stringify(event, null, 2));
-
   const todo: Todo = event.arguments;
 
-  todo.id = uuid();
+  //Use KSUID for which is similar to UUID, but it is sortable becouse the first part contains a timestamp
+  todo.id = mksuid(); 
   todo.user = (event.identity as AppSyncIdentityCognito).sub;
 
   const client = createDynamoDbClient();
@@ -19,12 +18,11 @@ export const handler = async (event: AppSyncResolverEvent<Todo>): Promise<Todo> 
     new PutCommand({
       TableName: process.env.DYNAMODB_TABLE,
       Item: {
-        PK: `TODO#${todo.id}`,
+        PK: `USER#${todo.user}`,
         SK: `TODO#${todo.id}`,
-        GSIPK: `USER#${todo.user}`,
-        GSISK: `ORDER#${todo.order?.toString().padStart(5, "0")}#${todo.order}`,
         id: todo.id,
-        name: todo.name
+        name: todo.name,
+        user: todo.user
       },
     })
   );

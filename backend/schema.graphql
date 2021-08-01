@@ -1,7 +1,6 @@
 type Todo {
   id: ID
-  name: String,
-  user: String,
+  name: String
 }
 
 type Query {
