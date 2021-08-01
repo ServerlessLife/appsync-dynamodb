@@ -68,14 +68,10 @@ resources:
     CognitoUserPool:
       Type: AWS::Cognito::UserPool              
       Properties:
-        AdminCreateUserConfig:
-          AllowAdminCreateUserOnly: false
         AliasAttributes:
           - email
         AutoVerifiedAttributes:
           - email
-        EmailVerificationMessage: The verification code to your new account is {####}
-        EmailVerificationSubject: Verify your new account
         Policies:
           PasswordPolicy:
             MinimumLength: 8
@@ -83,12 +79,8 @@ resources:
             RequireNumbers: false
             RequireSymbols: false
             RequireUppercase: false
-        SmsVerificationMessage: The verification code to your new account is {####}
         VerificationMessageTemplate:
           DefaultEmailOption: CONFIRM_WITH_CODE
-          EmailMessage: The verification code to your new account is {####}
-          EmailSubject: Verify your new account
-          SmsMessage: The verification code to your new account is {####}     
     CognitoUserPoolClient:
       Type: "AWS::Cognito::UserPoolClient"
       Properties:
@@ -97,16 +89,9 @@ resources:
           Ref: CognitoUserPool     
         AllowedOAuthFlows:
           - implicit
-          - code
-        AllowedOAuthFlowsUserPoolClient: true
-        AllowedOAuthScopes:
-          - profile
-          - phone
-          - email
-          - openid
-          - aws.cognito.signin.user.admin    
+
         CallbackURLs:
-          - https://example.com           
+          - https://${self:custom.subdomains.${opt:stage, self:provider.stage}}.markotest.com
      
 custom:
   subdomains:
@@ -117,10 +102,9 @@ custom:
     webpackConfig: 'webpack.config.js'
     includeModules: true 
   appSync:
-    name: appsync-dynamdb
+    name: appsync-dynamodb
     authenticationType: AMAZON_COGNITO_USER_POOLS
     userPoolConfig:
-      awsRegion: { Ref: AWS::Region }
       defaultAction: ALLOW
       userPoolId: { Ref: CognitoUserPool }    
     mappingTemplates:
